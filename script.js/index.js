@@ -1,14 +1,33 @@
+const createElements = (arr) => {
+  const htmlElements = arr.map((el) => `<span class="btn">${el}</span>`);
+  return htmlElements.join(" ");
+};
+
 const loadLesson = () => {
   fetch("https://openapi.programming-hero.com/api/levels/all")
     .then((response) => response.json())
     .then((data) => displayLesson(data.data));
 };
 
+const removeActive = () => {
+  const allBtn = document.querySelectorAll(".lesson-btn");
+  // console.log(allBtn);
+  allBtn.forEach((btn) => {
+    btn.classList.remove("btn-active");
+  });
+};
+
 const loadLevelWord = (id) => {
   const url = `https://openapi.programming-hero.com/api/level/${id}`;
   fetch(url)
     .then((response) => response.json())
-    .then((data) => displayLevelWord(data.data));
+    .then((data) => {
+      removeActive();
+      const clickBtn = document.getElementById(`lesson-btn-${id}`);
+      // console.log(clickBtn)
+      clickBtn.classList.add("btn-active");
+      displayLevelWord(data.data);
+    });
 };
 
 // {
@@ -18,6 +37,64 @@ const loadLevelWord = (id) => {
 //     "meaning": "মাছ",
 //     "pronunciation": "ফিশ"
 // }
+
+const loadWordDetaile = async (id) => {
+  const url = `https://openapi.programming-hero.com/api/word/${id}`;
+
+  const response = await fetch(url);
+  const details = await response.json();
+  displayLoadWordDetaile(details.data);
+};
+
+// {
+//     "word": "Eager",
+//     "meaning": "আগ্রহী",
+//     "pronunciation": "ইগার",
+//     "level": 1,
+//     "sentence": "The kids were eager to open their gifts.",
+//     "points": 1,
+//     "partsOfSpeech": "adjective",
+//     "synonyms": [
+//         "enthusiastic",
+//         "excited",
+//         "keen"
+//     ],
+//     "id": 5
+// }
+
+const displayLoadWordDetaile = (word) => {
+  console.log(word);
+  const detailsBox = document.getElementById("detailes-container");
+  detailsBox.innerHTML = `
+          <div>
+            <h2 class="text-2xl font-bold mb-8">
+              ${word.word} ( <i class="fa-solid fa-microphone-lines"></i> :${
+    word.pronunciation
+  })
+            </h2>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold mb-3">Meaning</h2>
+            <p class="font-bangla text-xl">${word.meaning}</p>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold mt-8 mb-3">Example</h2>
+            <p class="text-xl">${word.sentence}</p>
+          </div>
+
+          <div class="">
+            <h2 class="font-bangla text-xl font-bold mt-8 mb-3">
+              সমার্থক শব্দ গুলো
+            </h2>
+            <div class="">${createElements(word.synonyms)}</div>
+          </div>
+
+          <button class="btn btn-active btn-primary mt-8 px-6 py-6 rounded-xl">Complete Learning</button>
+  `;
+  document.getElementById("word_modal").showModal();
+};
 
 const displayLevelWord = (words) => {
   const wordContainer = document.getElementById("word-container");
@@ -56,7 +133,9 @@ const displayLevelWord = (words) => {
         </div>
         <div class="flex justify-between items-center mt-8">
           <button
-            class="font-bangla bg-[#1a91ff1a] hover:bg-[#1a91ff33] cursor-pointer btn rounded-lg text-xl"
+            onclick="loadWordDetaile(${
+              word.id
+            })" class="font-bangla bg-[#1a91ff1a] hover:bg-[#1a91ff33] cursor-pointer btn rounded-lg text-xl"
           >
             <i class="fa-solid fa-circle-info"></i>
           </button>
@@ -80,7 +159,7 @@ const displayLesson = (lessons) => {
   for (const lesson of lessons) {
     const btnDiv = document.createElement("div");
     btnDiv.innerHTML = `
-                <button onClick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary"
+                <button id="lesson-btn-${lesson.level_no}" onClick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary lesson-btn"
                 ><i class="fa-solid fa-book-open"></i>Lesson - ${lesson.level_no}</button
                 >`;
 
